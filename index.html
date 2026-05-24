@@ -306,11 +306,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
 
       <div class="card">
         <div class="card-t">Ajouter un aliment</div>
-        <div style="display:flex;gap:8px;margin-bottom:12px">
-          <input class="nut-search" type="text" id="food-search" placeholder="Rechercher un aliment..." oninput="searchFood(this.value)" autocomplete="off" autocorrect="off" style="margin-bottom:0">
-          <button onclick="startScanner()" style="width:48px;height:48px;border-radius:12px;background:var(--s2);border:1px solid var(--bd);font-size:22px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">📷</button>
+        <input class="nut-search" type="text" id="food-search" placeholder="Rechercher dans la base..." oninput="searchFood(this.value)" autocomplete="off" autocorrect="off">
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button onclick="startScanner()" style="flex:1;padding:11px;border-radius:12px;background:var(--s2);border:1px solid var(--bd);color:var(--tx);font-size:13px;font-weight:600;cursor:pointer">📷 Code-barres</button>
+          <button onclick="openDishModal()" style="flex:1;padding:11px;border-radius:12px;background:var(--s2);border:1px solid var(--bd);color:var(--tx);font-size:13px;font-weight:600;cursor:pointer">🍽️ Plat / Resto</button>
         </div>
-        <div id="food-results"></div>
+        <div id="food-results" style="margin-top:8px"></div>
       </div>
 
       <div class="card" id="food-log-card" style="display:none">
@@ -365,25 +366,34 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
 </div>
 
 <!-- SCANNER MODAL -->
-<div class="overlay hide" id="scan-overlay">
-  <div class="modal" style="padding-bottom:max(24px,env(safe-area-inset-bottom))">
-    <div class="modal-t">📷 Scanner un aliment</div>
-    <div class="scan-viewfinder" id="scan-viewfinder">
-      <video id="scan-video" autoplay muted playsinline></video>
-      <div class="scan-frame"><div class="scan-box"></div></div>
-      <div class="scan-line"></div>
+<div class="overlay hide" id="scan-overlay" onclick="closeQtyModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-t">📷 Scanner un code-barres</div>
+    <div style="background:var(--s2);border-radius:12px;padding:16px;text-align:center;margin-bottom:16px">
+      <div style="font-size:40px;margin-bottom:8px">📦</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">Photo du code-barres</div>
+      <div style="font-size:12px;color:var(--tm)">Pointez sur le code-barres au dos du produit</div>
     </div>
-    <div id="scan-status" style="text-align:center;color:var(--tm);font-size:13px;margin-bottom:12px">Démarrage de la caméra...</div>
-    <div id="scan-manual" style="display:none">
-      <div style="font-size:13px;color:var(--tm);margin-bottom:8px">Ou saisissez le code-barres manuellement :</div>
-      <div style="display:flex;gap:8px">
-        <input class="modal-inp" type="number" id="manual-barcode" placeholder="Ex: 3017620422003" style="margin-bottom:0;flex:1">
-        <button onclick="lookupBarcode(document.getElementById('manual-barcode').value)" style="background:var(--pr);border:none;border-radius:12px;color:white;padding:0 16px;font-weight:700;cursor:pointer;font-size:15px">OK</button>
-      </div>
-    </div>
+    <div id="scan-status" style="text-align:center;color:var(--tm);font-size:13px;margin-bottom:12px;min-height:18px"></div>
     <input type="file" id="scan-file-input" accept="image/*" capture="environment" style="display:none" onchange="scanFromFile(this)">
-    <button class="btn-pr" style="margin-top:12px" onclick="document.getElementById('scan-file-input').click()">📸 Prendre une photo du code-barres</button>
-    <button class="btn-sc" onclick="closeScanner()">Annuler</button>
+    <button class="btn-pr" onclick="document.getElementById('scan-file-input').click()">📸 Prendre une photo</button>
+    <div style="font-size:12px;color:var(--tm);text-align:center;margin:12px 0">— ou saisir manuellement —</div>
+    <div style="display:flex;gap:8px">
+      <input class="modal-inp" type="number" id="manual-barcode" placeholder="Ex: 3017620422003" style="margin-bottom:0;flex:1">
+      <button onclick="lookupBarcode(document.getElementById('manual-barcode').value)" style="background:var(--pr);border:none;border-radius:12px;color:white;padding:0 16px;font-weight:700;cursor:pointer;font-size:15px;flex-shrink:0">OK</button>
+    </div>
+    <button class="btn-sc" style="margin-top:8px" onclick="closeScanner()">Annuler</button>
+  </div>
+</div>
+
+<!-- DISH ESTIMATOR MODAL -->
+<div class="overlay hide" id="dish-overlay" onclick="closeDishModal(event)">
+  <div class="modal" onclick="event.stopPropagation()" style="max-height:80vh">
+    <div class="modal-t">🍽️ Estimation plat restaurant</div>
+    <input class="modal-inp" type="text" id="dish-search" placeholder="Ex: steak-frites, sushi, burger..." oninput="searchDish(this.value)" autocomplete="off" autocorrect="off">
+    <div style="font-size:12px;color:var(--tm);margin-bottom:12px">Valeurs estimées pour une portion standard</div>
+    <div id="dish-results"></div>
+    <button class="btn-sc" onclick="closeDishModal()">Annuler</button>
   </div>
 </div>
 
@@ -466,6 +476,15 @@ const FOODS=[
   {id:48,n:"Yaourt nature",u:"125g",c:71,p:4,g:8,f:2},
   {id:49,n:"Pain de mie complet",u:"2 tranches (50g)",c:115,p:5,g:20,f:2},
   {id:50,n:"Miel",u:"1 c.à.s (15g)",c:46,p:0,g:12,f:0},
+  {id:51,n:"Skyr framboise",u:"200g",c:134,p:20,g:14,f:0},
+  {id:52,n:"Skyr vanille",u:"200g",c:140,p:20,g:16,f:0},
+  {id:53,n:"Viande des grisons",u:"3 tranches (30g)",c:42,p:8,g:0,f:1},
+  {id:54,n:"Chèvre frais",u:"30g",c:78,p:5,g:0,f:6},
+  {id:55,n:"Babybel",u:"1 fromage (23g)",c:73,p:5,g:0,f:6},
+  {id:56,n:"Vache qui rit",u:"1 portion (17g)",c:38,p:2,g:1,f:3},
+  {id:57,n:"Maïs en boîte",u:"100g",c:86,p:3,g:17,f:1},
+  {id:58,n:"Tomates cerises",u:"100g",c:18,p:1,g:3,f:0},
+  {id:59,n:"Pain de mie complet (2 tranches)",u:"60g",c:138,p:6,g:24,f:2},
 ];
 
 // ===== STATE =====
@@ -533,49 +552,51 @@ function getAdaptiveEveningMeal(){
   const tot=getNutrition();
   const rem={cal:Math.max(0,GOALS.cal-tot.cal),pro:Math.max(0,GOALS.pro-tot.pro),car:Math.max(0,GOALS.car-tot.car),fat:Math.max(0,GOALS.fat-tot.fat)};
 
-  // Base recipe shown when nothing is logged yet
   if(tot.cal===0){
     return{base:true,items:[
-      {e:"🍗",n:"Poulet grillé",qty:"160g",detail:"Sel, poivre, paprika, ail",cal:264,pro:50},
-      {e:"🍚",n:"Riz blanc cuit",qty:"150g",detail:"Pesé cuit",cal:195,pro:5},
-      {e:"🥦",n:"Brocoli vapeur",qty:"200g",detail:"Ou haricots verts / courgette",cal:68,pro:6},
-      {e:"🫒",n:"Huile d'olive",qty:"1 c.à.s",detail:"Pour la cuisson",cal:90,pro:0},
-    ],total:{cal:617,pro:61,car:55,fat:17}};
+      {e:"🥚",n:"3 oeufs brouillés / à la poêle",qty:"150g",detail:"Sel, poivre, ciboulette",cal:234,pro:18},
+      {e:"🐟",n:"Thon en boîte",qty:"100g",detail:"Égoutté, citron",cal:116,pro:26},
+      {e:"🍞",n:"Pain de mie complet",qty:"2 tranches",detail:"",cal:138,pro:6},
+      {e:"🍅",n:"Tomates cerises",qty:"100g",detail:"",cal:18,pro:1},
+      {e:"🌽",n:"Maïs en boîte",qty:"60g",detail:"",cal:52,pro:2},
+    ],total:{cal:558,pro:53,car:38,fat:14}};
   }
 
   if(rem.cal<80&&rem.pro<10){return{done:true};}
 
   const items=[];
-  let usedCal=0;
 
-  // Protein source
-  let src;
-  if(rem.pro>=48){src={e:"🍗",n:"Poulet grillé",cal100:165,pro100:31,car100:0,fat100:4,qty:Math.min(250,Math.max(120,Math.round(rem.pro/0.31)))};}
-  else if(rem.pro>=35){src={e:"🐟",n:"Saumon",cal100:208,pro100:20,car100:0,fat100:13,qty:Math.min(200,Math.max(100,Math.round(rem.pro/0.20)))};}
-  else if(rem.pro>=22){src={e:"🐟",n:"Thon en boîte",cal100:116,pro100:26,car100:0,fat100:1,qty:Math.min(150,Math.max(80,Math.round(rem.pro/0.26)))};}
-  else{src={e:"🥚",n:"Oeufs entiers",cal100:156,pro100:12,car100:0,fat100:10,qty:150};}// 3 oeufs ≈ 150g
-
-  const pCal=Math.round(src.qty*src.cal100/100);const pPro=Math.round(src.qty*src.pro100/100);
-  items.push({e:src.e,n:src.n,qty:src.qty+'g',detail:'Source principale de protéines',cal:pCal,pro:pPro});
-  usedCal+=pCal;
-
-  // Carb source
-  const remCar=rem.car;
-  if(remCar>=20&&(rem.cal-usedCal)>80){
-    let cSrc;
-    if(remCar>=45){cSrc={e:"🍚",n:"Riz blanc cuit",cal100:130,car100:28,qty:Math.min(200,Math.max(80,Math.round(remCar/0.28)))};}
-    else if(remCar>=25){cSrc={e:"🍠",n:"Patate douce cuite",cal100:86,car100:20,qty:Math.min(200,Math.max(80,Math.round(remCar/0.20)))};}
-    else{cSrc={e:"🍞",n:"Pain complet",cal100:220,car100:40,qty:60};}
-    const cCal=Math.round(cSrc.qty*cSrc.cal100/100);
-    items.push({e:cSrc.e,n:cSrc.n,qty:cSrc.qty+'g',detail:'Source de glucides',cal:cCal,pro:Math.round(cSrc.qty*(cSrc.pro100||3)/100)});
-    usedCal+=cCal;
+  // Protein source — tes aliments préférés
+  if(rem.pro>=40){
+    // Oeufs + thon
+    items.push({e:"🥚",n:"3 oeufs",qty:"150g",detail:"Brouillés ou à la poêle",cal:234,pro:18});
+    items.push({e:"🐟",n:"Thon en boîte",qty:"100g",detail:"Égoutté",cal:116,pro:26});
+  } else if(rem.pro>=28){
+    // Thon seul ou oeufs selon ratio
+    if(rem.cal>350){
+      items.push({e:"🥚",n:"3 oeufs",qty:"150g",detail:"",cal:234,pro:18});
+    } else {
+      items.push({e:"🐟",n:"Thon en boîte",qty:"100g",detail:"Égoutté",cal:116,pro:26});
+      items.push({e:"🧀",n:"Babybel × 2",qty:"46g",detail:"",cal:146,pro:10});
+    }
+  } else if(rem.pro>=15){
+    // Jambon / viande des grisons + skyr
+    items.push({e:"🥩",n:"Viande des grisons",qty:"60g (6 tranches)",detail:"Ou jambon blanc",cal:84,pro:16});
+    items.push({e:"🍓",n:"Skyr framboise ou vanille",qty:"200g",detail:"",cal:136,pro:20});
+  } else {
+    // Léger : skyr + fromage
+    items.push({e:"🍓",n:"Skyr framboise ou vanille",qty:"200g",detail:"",cal:136,pro:20});
+    items.push({e:"🧀",n:"Vache qui rit × 2",qty:"34g",detail:"Ou chèvre frais 30g",cal:76,pro:4});
   }
 
-  // Always add veggies
-  items.push({e:"🥦",n:"Légumes verts",qty:"200g",detail:"Brocoli / haricots verts / courgette",cal:60,pro:5});
+  // Glucides si besoin
+  if(rem.car>=20){
+    items.push({e:"🍞",n:"Pain de mie complet",qty:"2 tranches",detail:"",cal:138,pro:6});
+    if(rem.car>=35) items.push({e:"🌽",n:"Maïs en boîte",qty:"60g",detail:"",cal:52,pro:2});
+  }
 
-  // Oil if fat still needed
-  if(rem.fat>=7){items.push({e:"🫒",n:"Huile d'olive",qty:"1 c.à.s (10ml)",detail:"Pour la cuisson",cal:90,pro:0});}
+  // Toujours les tomates cerises
+  items.push({e:"🍅",n:"Tomates cerises",qty:"100g",detail:"",cal:18,pro:1});
 
   const totalCal=items.reduce((a,i)=>a+(i.cal||0),0);
   const totalPro=items.reduce((a,i)=>a+(i.pro||0),0);
@@ -601,45 +622,135 @@ function renderEveningMeal(){
   <div class="macro-chips"><div class="chip" style="color:var(--pr)">${r.total.cal} kcal</div><div class="chip" style="color:var(--blu)">${r.total.pro}g prot</div></div>`;
 }
 
+// ===== DISHES DATABASE =====
+const DISHES=[
+  {n:"Steak-frites",c:680,p:42,g:52,f:28},
+  {n:"Entrecôte grillée",c:420,p:48,g:0,f:24},
+  {n:"Poulet rôti (demi)",c:480,p:52,g:0,f:28},
+  {n:"Poulet basquaise",c:380,p:38,g:12,f:18},
+  {n:"Magret de canard",c:320,p:32,g:0,f:20},
+  {n:"Côtelettes agneau",c:380,p:38,g:0,f:24},
+  {n:"Escalope milanaise",c:480,p:38,g:22,f:24},
+  {n:"Kebab assiette",c:620,p:38,g:52,f:22},
+  {n:"Kebab sandwich",c:520,p:30,g:48,f:22},
+  {n:"Burger classique",c:550,p:32,g:45,f:24},
+  {n:"Burger double",c:750,p:48,g:52,f:35},
+  {n:"Burger poulet",c:480,p:28,g:48,f:18},
+  {n:"Cheeseburger",c:600,p:35,g:46,f:28},
+  {n:"Saumon grillé + riz",c:520,p:38,g:42,f:16},
+  {n:"Dos de cabillaud légumes",c:280,p:32,g:12,f:8},
+  {n:"Fish & chips",c:680,p:28,g:72,f:32},
+  {n:"Crevettes sautées riz",c:420,p:32,g:48,f:8},
+  {n:"Pâtes carbonara",c:620,p:24,g:68,f:26},
+  {n:"Pâtes bolognaise",c:540,p:28,g:62,f:18},
+  {n:"Pâtes pesto",c:560,p:18,g:68,f:22},
+  {n:"Risotto",c:480,p:14,g:72,f:16},
+  {n:"Pizza margherita (entière)",c:780,p:32,g:98,f:26},
+  {n:"Pizza jambon (entière)",c:850,p:40,g:98,f:30},
+  {n:"Pizza 4 fromages (entière)",c:920,p:38,g:96,f:42},
+  {n:"2 parts de pizza",c:420,p:18,g:52,f:15},
+  {n:"Sushi (10 pièces)",c:380,p:18,g:58,f:8},
+  {n:"Sushi (15 pièces)",c:560,p:26,g:86,f:12},
+  {n:"Ramen",c:520,p:28,g:58,f:18},
+  {n:"Pad thaï",c:480,p:22,g:58,f:16},
+  {n:"Wok légumes poulet",c:380,p:28,g:38,f:12},
+  {n:"Nems 3 pièces",c:220,p:10,g:22,f:10},
+  {n:"Salade César poulet",c:420,p:32,g:18,f:24},
+  {n:"Salade niçoise",c:360,p:28,g:18,f:18},
+  {n:"Salade chèvre chaud",c:380,p:18,g:28,f:22},
+  {n:"Bowl quinoa légumes",c:420,p:18,g:52,f:14},
+  {n:"Bowl poulet riz",c:520,p:38,g:52,f:12},
+  {n:"Sandwich club",c:480,p:28,g:42,f:20},
+  {n:"Wrap poulet",c:420,p:28,g:42,f:14},
+  {n:"Croque-monsieur",c:380,p:18,g:28,f:22},
+  {n:"Quiche lorraine (part)",c:380,p:14,g:22,f:28},
+  {n:"Bœuf bourguignon",c:420,p:38,g:18,f:20},
+  {n:"Tartiflette",c:580,p:18,g:32,f:42},
+  {n:"Blanquette de veau",c:380,p:32,g:18,f:18},
+  {n:"Crêpe jambon fromage",c:320,p:16,g:32,f:14},
+  {n:"Galette complète",c:350,p:18,g:34,f:16},
+  {n:"Omelette 3 oeufs fromage",c:380,p:24,g:2,f:28},
+  {n:"Tartare de bœuf",c:280,p:28,g:8,f:14},
+  {n:"Soupe légumes",c:120,p:4,g:18,f:3},
+  {n:"Velouté potiron",c:160,p:3,g:18,f:8},
+  {n:"Tajine poulet",c:420,p:36,g:28,f:18},
+  {n:"Couscous poulet",c:580,p:38,g:62,f:18},
+  {n:"Paella",c:520,p:32,g:58,f:16},
+  {n:"Lasagnes bolognaise",c:480,p:24,g:48,f:22},
+  {n:"Hachis parmentier",c:420,p:22,g:38,f:20},
+  {n:"McDo Big Mac",c:503,p:25,g:43,f:25},
+  {n:"McDo McChicken",c:430,p:22,g:42,f:19},
+  {n:"McDo menu moyen (burger+frites)",c:900,p:38,g:98,f:38},
+  {n:"KFC bucket 2 morceaux",c:620,p:42,g:32,f:36},
+  {n:"Subway 30cm poulet",c:480,p:32,g:52,f:12},
+];
+
+function openDishModal(){
+  document.getElementById('dish-overlay').classList.remove('hide');
+  document.getElementById('dish-search').value='';
+  document.getElementById('dish-results').innerHTML='<div style="color:var(--tm);font-size:13px;padding:8px 0">Tapez le nom d\'un plat pour estimer les calories…</div>';
+  setTimeout(()=>document.getElementById('dish-search').focus(),100);
+}
+
+function closeDishModal(e){
+  if(e&&e.target!==document.getElementById('dish-overlay'))return;
+  document.getElementById('dish-overlay').classList.add('hide');
+}
+
+function searchDish(q){
+  const res=document.getElementById('dish-results');
+  if(!q.trim()){res.innerHTML='<div style="color:var(--tm);font-size:13px;padding:8px 0">Tapez le nom d\'un plat…</div>';return;}
+  const words=q.toLowerCase().split(' ').filter(w=>w.length>1);
+  const matches=DISHES.filter(d=>words.some(w=>d.n.toLowerCase().includes(w)))
+    .sort((a,b)=>{
+      const sa=words.filter(w=>a.n.toLowerCase().includes(w)).length;
+      const sb=words.filter(w=>b.n.toLowerCase().includes(w)).length;
+      return sb-sa;
+    }).slice(0,8);
+  if(!matches.length){res.innerHTML='<div style="color:var(--tm);font-size:13px;padding:8px 0">Aucun plat trouvé — essayez un autre mot clé</div>';return;}
+  res.innerHTML=matches.map(d=>`
+    <div class="food-res" onclick="addDish(${DISHES.indexOf(d)})">
+      <div>
+        <div class="food-res-name">${d.n}</div>
+        <div class="food-res-sub">${d.c} kcal · ${d.p}g prot · ${d.g}g carb · ${d.f}g lip — <span style="color:var(--gold)">estimation</span></div>
+      </div>
+      <div class="food-add">+</div>
+    </div>`).join('');
+}
+
+function addDish(idx){
+  const d=DISHES[idx];
+  const state=ensureDay(gs());
+  state.days[today()].nutrition.push({id:Date.now(),foodId:'dish_'+idx,name:d.n,qty:1,cal:d.c,p:d.p,g:d.g,f:d.f});
+  ss(state);
+  document.getElementById('dish-overlay').classList.add('hide');
+  document.getElementById('dish-search').value='';
+  renderNutrition();renderHome();
+}
+
 // ===== SCANNER =====
-let scanStream=null,scanInterval=null;
-
-async function startScanner(){
+function startScanner(){
+  document.getElementById('scan-status').textContent='';
+  document.getElementById('manual-barcode').value='';
   document.getElementById('scan-overlay').classList.remove('hide');
-  document.getElementById('scan-manual').style.display='none';
-  document.getElementById('scan-status').textContent='Démarrage de la caméra...';
-  try{
-    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
-    const vid=document.getElementById('scan-video');vid.srcObject=scanStream;await vid.play();
-    if('BarcodeDetector' in window){
-      const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39']});
-      document.getElementById('scan-status').textContent='Pointez sur le code-barres du produit';
-      scanInterval=setInterval(async()=>{try{const b=await det.detect(vid);if(b.length){stopScanStream();lookupBarcode(b[0].rawValue);}}catch(e){}},500);
-    }else{document.getElementById('scan-status').textContent='Scanner live non supporté sur cet appareil';document.getElementById('scan-manual').style.display='block';}
-  }catch(e){document.getElementById('scan-status').textContent='Caméra indisponible — utilisez la photo ou la saisie manuelle';document.getElementById('scan-manual').style.display='block';}
 }
 
-function stopScanStream(){
-  if(scanInterval){clearInterval(scanInterval);scanInterval=null;}
-  if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}
-  const v=document.getElementById('scan-video');if(v)v.srcObject=null;
-}
-
-function closeScanner(){stopScanStream();document.getElementById('scan-overlay').classList.add('hide');}
+function closeScanner(){document.getElementById('scan-overlay').classList.add('hide');}
 
 async function scanFromFile(input){
   const file=input.files[0];if(!file)return;
-  document.getElementById('scan-status').textContent='Analyse de l\'image en cours...';
+  document.getElementById('scan-status').textContent='Analyse du code-barres…';
   try{
     if('BarcodeDetector' in window){
       const img=await createImageBitmap(file);
       const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128']});
       const barcodes=await det.detect(img);
       if(barcodes.length){closeScanner();lookupBarcode(barcodes[0].rawValue);input.value='';return;}
+      document.getElementById('scan-status').textContent='Code-barres non détecté — saisissez-le manuellement ci-dessous';
+    } else {
+      document.getElementById('scan-status').textContent='Saisie manuelle requise (iOS < 17)';
     }
-    document.getElementById('scan-status').textContent='Code-barres non détecté. Saisissez-le manuellement.';
-    document.getElementById('scan-manual').style.display='block';
-  }catch(e){document.getElementById('scan-status').textContent='Erreur d\'analyse. Saisie manuelle disponible.';document.getElementById('scan-manual').style.display='block';}
+  }catch(e){document.getElementById('scan-status').textContent='Erreur — saisissez le code manuellement';}
   input.value='';
 }
 
