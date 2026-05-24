@@ -1,4 +1,4 @@
-const CACHE = 'fitxp-v1';
+const CACHE = 'fitxp-v2';
 const ASSETS = ['/', '/index.html'];
 
 self.addEventListener('install', e => {
