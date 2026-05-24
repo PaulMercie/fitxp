@@ -221,8 +221,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
         </div>
       </div>
       <div class="minigrid" style="margin-bottom:12px">
-        <div class="mstat"><div class="mstat-icon">👟</div><div class="mstat-val" id="home-steps">0</div><div class="mstat-lbl">Pas (/ 10 000)</div></div>
-        <div class="mstat"><div class="mstat-icon">💧</div><div class="mstat-val" id="home-water">0 / 3L</div><div class="mstat-lbl">Hydratation</div></div>
+        <div class="mstat"><div class="mstat-icon">🔥</div><div class="mstat-val" id="home-streak">0</div><div class="mstat-lbl">Streak actuel</div></div>
+        <div class="mstat"><div class="mstat-icon">⚡</div><div class="mstat-val" id="home-xp-total">0</div><div class="mstat-lbl">XP total</div></div>
         <div class="mstat"><div class="mstat-icon">🔥</div><div class="mstat-val" id="home-cal">0 kcal</div><div class="mstat-lbl">Calories (/ 2200)</div></div>
         <div class="mstat"><div class="mstat-icon">🥩</div><div class="mstat-val" id="home-prot">0g</div><div class="mstat-lbl">Protéines (/ 135g)</div></div>
       </div>
@@ -236,29 +236,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
     <div class="pg" id="pg-goals">
       <div class="s-title">Objectifs du jour</div>
 
-      <!-- Apple Health -->
-      <div class="health-card" id="health-card">
-        <div class="health-card-t">⌚ Apple Santé — Pas quotidiens</div>
-        <div class="step-counter">
-          <div class="step-val" id="steps-display">0</div>
-          <div class="step-lbl">pas aujourd'hui</div>
-          <div class="step-bar-wrap"><div class="step-bar-fill" id="steps-bar" style="width:0%"></div></div>
-          <div style="font-size:11px;color:var(--tm)">Objectif : 10 000 pas</div>
-        </div>
-        <div id="health-setup-toggle" style="text-align:center;margin-top:8px">
-          <button class="btn-sm" onclick="toggleHealthSetup()">⚙️ Configurer la synchronisation</button>
-        </div>
-        <div id="health-setup" style="display:none">
-          <div class="shortcut-steps">
-            <div style="font-size:13px;font-weight:700;margin-bottom:10px">Synchronisation automatique via Raccourcis Apple :</div>
-            <div class="shortcut-step"><div class="shortcut-num">1</div><div class="shortcut-txt">Ouvre l'app <b>Raccourcis</b> sur iPhone → <b>+</b> nouveau raccourci</div></div>
-            <div class="shortcut-step"><div class="shortcut-num">2</div><div class="shortcut-txt">Ajoute l'action <b>"Obtenir quantité de santé"</b> → choisir <b>"Pas"</b> → Aujourd'hui</div></div>
-            <div class="shortcut-step"><div class="shortcut-num">3</div><div class="shortcut-txt">Ajoute <b>"Ouvrir les URLs"</b> avec cette URL :<div class="code-block" id="shortcut-url-display"></div></div></div>
-            <div class="shortcut-step"><div class="shortcut-num">4</div><div class="shortcut-txt">Remplace <b>STEPS</b> dans l'URL par la <b>variable "Quantité de santé"</b> du résultat de l'action précédente</div></div>
-            <div class="shortcut-step"><div class="shortcut-num">5</div><div class="shortcut-txt">Active l'<b>automatisation</b> : soir à 21h → déclencher ce raccourci</div></div>
-          </div>
-        </div>
-      </div>
 
       <div class="card">
         <div class="card-t">Habitudes quotidiennes</div>
@@ -282,22 +259,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
           <div class="task-info"><div class="task-name">😴 8h de sommeil</div><div class="task-sub">Récupération optimale</div></div>
           <div class="task-xp">+80 XP</div>
         </div>
+        <div class="task" id="t-water" onclick="toggleTask('water')">
+          <div class="chk" id="chk-water"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="task-info"><div class="task-name">💧 3L d'eau</div><div class="task-sub">Hydratation quotidienne</div></div>
+          <div class="task-xp">+80 XP</div>
+        </div>
         <div class="task" id="t-workout" onclick="toggleTask('workout')">
           <div class="chk" id="chk-workout"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
           <div class="task-info"><div class="task-name">💪 Séance d'entraînement</div><div class="task-sub" id="workout-task-sub">Voir onglet Training</div></div>
           <div class="task-xp">+150 XP</div>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="card-t">💧 Hydratation (objectif : 3L)</div>
-        <div class="water-ctrl">
-          <button class="water-btn" onclick="changeWater(-1)">−</button>
-          <div style="flex:1"><div class="water-bar-wrap"><div class="water-bar-fill" id="water-fill" style="width:0%"></div></div></div>
-          <button class="water-btn" onclick="changeWater(1)">+</button>
-          <div class="water-val" id="water-val">0L</div>
-        </div>
-        <div style="font-size:11px;color:var(--tm);margin-top:8px;text-align:center">Chaque clic = +/- 250ml • XP accordé à 3L</div>
       </div>
 
       <div class="tip-box" id="daily-tip">💡 Chargement du conseil du jour...</div>
@@ -510,7 +481,7 @@ function today(){return new Date().toISOString().split('T')[0];}
 
 function ensureDay(state){
   const d=today();
-  if(!state.days[d])state.days[d]={tasks:{steps:false,skincareMatin:false,skincareSoir:false,sleep:false,workout:false},water:0,steps:0,nutrition:[],xp:0};
+  if(!state.days[d])state.days[d]={tasks:{steps:false,water:false,skincareMatin:false,skincareSoir:false,sleep:false,workout:false},nutrition:[],xp:0};
   return state;
 }
 
@@ -794,35 +765,11 @@ function renderGoals(){
     if(d.tasks[k]){el.classList.add('done');chk.style.visibility='visible';}
     else{el.classList.remove('done');chk.style.visibility='hidden';}
   });
-  const wl=(d.water||0)/4;
-  document.getElementById('water-val').textContent=wl.toFixed(1).replace(/\.?0+$/,'')+'L';
-  document.getElementById('water-fill').style.width=Math.min((d.water||0)/12*100,100)+'%';
   const wk=getWorkout();
   document.getElementById('workout-task-sub').textContent=wk.type==='rest'?'Repos aujourd\'hui':wk.type==='run+abs'?'Course + Abdos/Pompes':'Abdos / Pompes';
   document.getElementById('daily-tip').textContent='💡 '+TIPS[new Date().getDate()%TIPS.length];
-  // Steps display
-  const stepsCount=d.steps||0;
-  document.getElementById('steps-display').textContent=stepsCount.toLocaleString('fr-FR');
-  document.getElementById('steps-bar').style.width=Math.min(stepsCount/10000*100,100)+'%';
-  document.getElementById('steps-task-sub').textContent=stepsCount>0?stepsCount.toLocaleString('fr-FR')+' / 10 000 pas':'Marche + activité quotidienne';
-  // Shortcut URL
-  const url=window.location.origin+window.location.pathname+'?steps=STEPS&date='+today();
-  const el=document.getElementById('shortcut-url-display');if(el)el.textContent=url;
 }
 
-function changeWater(delta){
-  const state=ensureDay(gs());const d=state.days[today()];const prev=d.water||0;
-  d.water=Math.max(0,Math.min(prev+delta,16));
-  const wasGoal=prev>=12,nowGoal=d.water>=12;ss(state);
-  if(nowGoal&&!wasGoal)addXP(XP_R.water);
-  else if(!nowGoal&&wasGoal){state.user.totalXP=Math.max(0,state.user.totalXP-XP_R.water);state.days[today()].xp=Math.max(0,(state.days[today()].xp||0)-XP_R.water);ss(state);updateHeader();}
-  renderGoals();renderHome();
-}
-
-function toggleHealthSetup(){
-  const el=document.getElementById('health-setup');
-  el.style.display=el.style.display==='none'?'block':'none';
-}
 
 // ===== TRAINING =====
 function renderTraining(){
@@ -857,16 +804,14 @@ function renderHome(){
   const titles=['Prêt à attaquer ?','Super, continue !','Mi-chemin !','Presque là !','Journée parfaite !'];
   document.getElementById('hero-title').textContent=titles[Math.min(Math.floor(pct/25),4)];
   document.getElementById('hero-xp').textContent='+'+(d.xp||0)+' XP aujourd\'hui';
-  const stepsCount=d.steps||0;
-  document.getElementById('home-steps').textContent=stepsCount.toLocaleString('fr-FR');
-  const wl=(d.water||0)/4;
-  document.getElementById('home-water').textContent=wl.toFixed(1).replace(/\.?0+$/,'')+'L / 3L';
+  document.getElementById('home-streak').textContent=state.user.streak||0;
+  document.getElementById('home-xp-total').textContent=state.user.totalXP||0;
   const tot=getNutrition();
   document.getElementById('home-cal').textContent=Math.round(tot.cal)+' kcal';
   document.getElementById('home-prot').textContent=Math.round(tot.pro)+'g';
   const nextKeys=['steps','water','skincareMatin','skincareSoir','sleep','workout'];
   const nextLabels={steps:'👟 10 000 pas',water:'💧 3L d\'eau',skincareMatin:'☀️ Skincare matin',skincareSoir:'🌙 Skincare soir',sleep:'😴 8h de sommeil',workout:'💪 Entraînement'};
-  const nextTask=nextKeys.find(k=>!tasks[k]||(k==='water'&&(d.water||0)<12));
+  const nextTask=nextKeys.find(k=>!tasks[k]);
   document.getElementById('home-next').innerHTML=nextTask?`<div style="font-size:15px;font-weight:600">${nextLabels[nextTask]}</div><div style="font-size:12px;color:var(--tm);margin-top:4px">+${XP_R[nextTask]||80} XP à la clé</div>`:`<div style="font-size:15px;font-weight:600;color:var(--grn)">✅ Tous les objectifs du jour atteints !</div>`;
 }
 
@@ -900,7 +845,7 @@ function renderStats(){
   document.getElementById('stat-phase').textContent=wk.phase===1?'Phase 1 — Construction':wk.phase===2?'Phase 2 — Développement':'Phase 3 — Spécifique course';
   const ACHS=[
     {i:'🔥',n:'Premier pas',d:'Première tâche complétée',u:state.user.totalXP>0},
-    {i:'💧',n:'Hydraté',d:'3L d\'eau en une journée',u:Object.values(state.days).some(d=>d.water>=12)},
+    {i:'💧',n:'Hydraté',d:'3L d\'eau en une journée',u:Object.values(state.days).some(d=>d.tasks&&d.tasks.water)},
     {i:'📅',n:'Une semaine',d:'7 jours actifs',u:activeDays>=7},
     {i:'⚡',n:'500 XP',d:'Atteindre 500 XP total',u:state.user.totalXP>=500},
     {i:'🏃',n:'En route',d:'Semaine 4 de programme atteinte',u:wk.wk>=4},
@@ -937,27 +882,8 @@ function updateHeader(){
   document.getElementById('hdr-streak').textContent='🔥 '+state.user.streak;
 }
 
-// ===== APPLE HEALTH URL PARAMS =====
-function handleURLParams(){
-  const params=new URLSearchParams(window.location.search);
-  const steps=params.get('steps');
-  if(steps){
-    const count=parseInt(steps);if(isNaN(count)||count<0)return;
-    const state=ensureDay(gs());const d=state.days[today()];
-    d.steps=count;
-    // Auto-check steps task if >= 10000
-    const wasChecked=d.tasks.steps;
-    if(count>=10000&&!wasChecked){d.tasks.steps=true;if(state.user.lastDate!==today()){state.user.streak=(state.user.streak||0)+1;if(state.user.streak>state.user.bestStreak)state.user.bestStreak=state.user.streak;state.user.lastDate=today();}state.user.totalXP+=XP_R.steps;d.xp=(d.xp||0)+XP_R.steps;}
-    else if(count<10000&&wasChecked){d.tasks.steps=false;state.user.totalXP=Math.max(0,state.user.totalXP-XP_R.steps);d.xp=Math.max(0,(d.xp||0)-XP_R.steps);}
-    ss(state);
-    // Clean URL
-    window.history.replaceState({},'',window.location.pathname);
-  }
-}
-
 // ===== INIT =====
 function init(){
-  handleURLParams();
   const state=ensureDay(gs());
   const last=state.user.lastDate;
   if(last&&last!==today()){const diff=Math.floor((new Date(today())-new Date(last))/86400000);if(diff>1){state.user.streak=0;ss(state);}}
